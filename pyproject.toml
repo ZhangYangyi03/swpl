@@ -1,0 +1,37 @@
+[build-system]
+requires = ["flit_core>=3.9"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "swpl"
+version = "0.1.0"
+description = "Skew–Phase Law (SWPL): Data structure selection under Zipf workloads"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "Zhang Yangyi", email = "yz1571@georgetown.edu"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Database :: Database Engines/Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "numpy>=1.20",
+    "matplotlib>=3.4",
+]
+keywords = ["data-structures", "zipf", "workload-characterization", "phase-transition"]
+
+[project.urls]
+Home = "https://github.com/yz1571/swpl"
+Source = "https://github.com/yz1571/swpl"
+
+[project.scripts]
+swpl = "swpl.cli:main"
+
+[tool.flit.module]
+name = "swpl"
