@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 [project]
 name = "swpl"
 version = "0.1.0"
-description = "Skew–Phase Law (SWPL): Data structure selection under Zipf workloads"
+description = "Skew-Phase Law (SWPL) — data structure selection under Zipf workloads + optimal zeta-Trie"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
@@ -15,20 +15,27 @@ authors = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
     "Topic :: Database :: Database Engines/Servers",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering",
 ]
 dependencies = [
     "numpy>=1.20",
     "matplotlib>=3.4",
 ]
-keywords = ["data-structures", "zipf", "workload-characterization", "phase-transition"]
+keywords = ["data-structures", "zipf", "workload-characterization", "phase-transition",
+            "zeta-trie", "swpl", "skew-law"]
 
 [project.urls]
-Home = "https://github.com/yz1571/swpl"
-Source = "https://github.com/yz1571/swpl"
+Home = "https://github.com/ZhangYangyi03/swpl"
+Source = "https://github.com/ZhangYangyi03/swpl"
+Documentation = "https://github.com/ZhangYangyi03/swpl#readme"
 
 [project.scripts]
 swpl = "swpl.cli:main"

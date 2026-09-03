@@ -1,0 +1,62 @@
+[
+  {
+    "alpha": 1.05,
+    "prob_zeta_actual": 2.21906,
+    "prob_zeta_expected": 2.2273701797256518,
+    "rank_zeta": 2.05222,
+    "splay_theory": 13.0,
+    "static_bst": 13.0,
+    "bound_logM": 4.333333333333333,
+    "M_90": 8192,
+    "max_depth": 6,
+    "hot_at_depth_0": 1
+  },
+  {
+    "alpha": 1.2,
+    "prob_zeta_actual": 1.60472,
+    "prob_zeta_expected": 1.6134867684252565,
+    "rank_zeta": 2.57,
+    "splay_theory": 13.0,
+    "static_bst": 13.0,
+    "bound_logM": 4.1202823613932225,
+    "M_90": 5260,
+    "max_depth": 6,
+    "hot_at_depth_0": 2
+  },
+  {
+    "alpha": 1.5,
+    "prob_zeta_actual": 0.87718,
+    "prob_zeta_expected": 0.8819778174160245,
+    "rank_zeta": 3.27178,
+    "splay_theory": 13.0,
+    "static_bst": 13.0,
+    "bound_logM": 0.6666666666666667,
+    "M_90": 4,
+    "max_depth": 7,
+    "hot_at_depth_0": 2
+  },
+  {
+    "alpha": 2.0,
+    "prob_zeta_actual": 0.34382,
+    "prob_zeta_expected": 0.34619745495925064,
+    "rank_zeta": 3.71876,
+    "splay_theory": 13.0,
+    "static_bst": 13.0,
+    "bound_logM": 0.33333333333333337,
+    "M_90": 2,
+    "max_depth": 8,
+    "hot_at_depth_0": 2
+  },
+  {
+    "alpha": 3.0,
+    "prob_zeta_actual": 0.0805,
+    "prob_zeta_expected": 0.0813121824474782,
+    "rank_zeta": 3.93518,
+    "splay_theory": 6.5,
+    "static_bst": 13.0,
+    "bound_logM": 0.33333333333333337,
+    "M_90": 2,
+    "max_depth": 14,
+    "hot_at_depth_0": 2
+  }
+]
