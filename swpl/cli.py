@@ -76,6 +76,22 @@ def cmd_plot(args):
         print(f"Unknown plot type: {args.type}")
 
 
+def _ensure_utf8_stdout():
+    """Make the report printable on a cp1252 / cp936 console.
+
+    The output is full of α, ζ and "≈". On Windows the console defaults to a
+    legacy code page, and `print("α")` raises UnicodeEncodeError -- which is
+    exactly what CI caught on windows-latest. Reconfigure the stream when the
+    interpreter allows it, and otherwise fall back to replacing what cannot be
+    encoded rather than crashing.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="swpl",
@@ -105,6 +121,7 @@ def main():
     # version
     sub.add_parser("version", help="Show version")
 
+    _ensure_utf8_stdout()
     args = parser.parse_args()
 
     if args.command == "analyze":

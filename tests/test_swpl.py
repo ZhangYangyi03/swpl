@@ -101,3 +101,22 @@ def test_prob_trie_depth_zero_for_hottest_key():
 def test_benchmark_runs_and_orders_costs():
     res = zeta_benchmark(alpha=1.5, n=1024, b=8, queries=2000)
     assert isinstance(res, dict) and res, res
+
+
+def test_cli_survives_a_legacy_console():
+    """The report is full of α and ζ. On a cp1252 console that used to be a
+    UnicodeEncodeError (caught by CI on windows-latest, 3.9 and 3.11)."""
+    import io
+    import subprocess
+    code = (
+        "import sys, io\n"
+        "sys.stdout = io.TextIOWrapper(io.BytesIO(), encoding='cp1252')\n"
+        "sys.path.insert(0, '.')\n"
+        "from swpl.cli import main\n"
+        "sys.argv = ['swpl', 'recommend', '--alpha', '1.5', '--ordered']\n"
+        "main()\n"
+    )
+    r = subprocess.run([sys.executable, "-c", code],
+                       cwd=str(Path(__file__).resolve().parents[1]),
+                       capture_output=True)
+    assert r.returncode == 0, r.stderr.decode("utf-8", "replace")
