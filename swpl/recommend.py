@@ -42,23 +42,40 @@ finite ζ = finite hot set = adaptive structures win.
 """
 
 import math
-import numpy as np
 from typing import Optional
 
 # ─── Zeta normalisation ──────────────────────────────────────────
 
-def zeta_partial(n: int, alpha: float) -> float:
-    """ζ_n(α) = Σ_{k=1}^n k^{-α}  via integral approximation for speed."""
-    if alpha == 1.0:
-        return math.log(n) + 0.5772156649  # Euler-Mascheroni
-    # direct sum for small n, integral approx for large
-    if n <= 10_000:
-        return sum(k ** -alpha for k in range(1, n + 1))
-    # Euler-Maclaurin: ζ(α) - Σ_{k=n+1}^∞ ≈ ζ(α) - n^{1-α}/(α-1)
-    from mpmath import zeta as mp_zeta
-    z = float(mp_zeta(alpha))
-    tail = (n ** (1 - alpha)) / (alpha - 1)
-    return z - tail
+def zeta_partial(n: int, alpha: float, exact_terms: int = 1_000_000) -> float:
+    """ζ_n(α) = Σ_{k=1}^{n} k^{-α}.
+
+    Exact direct summation for the first `exact_terms` terms, then an
+    Euler–Maclaurin tail
+
+        Σ_{k=N+1}^{n} k^{-a} ≈ [n^{1-a} - N^{1-a}]/(1-a) + (N^{-a}+n^{-a})/2
+                               + a (N^{-a-1} - n^{-a-1}) / 12
+
+    with the a=1 case handled separately (the closed form below, not the
+    log n + γ shortcut the previous version used, which was off by 5e-4
+    at n=1000). Standard library only — no mpmath, no numpy: the analysis
+    path must import on a machine that has neither.
+    """
+    if n <= 0:
+        return 0.0
+    a = float(alpha)
+    N = min(n, exact_terms)
+    s = math.fsum(k ** -a for k in range(1, N + 1))
+    if n > N:
+        if a == 1.0:
+            s += (math.log(n) - math.log(N)
+                  + 0.5 * (1.0 / N + 1.0 / n)
+                  + (N ** -2 - n ** -2) / 12.0)
+        else:
+            s += ((n ** (1 - a) - N ** (1 - a)) / (1 - a)
+                  + 0.5 * (N ** -a + n ** -a)
+                  + (a * (N ** (-a - 1) - n ** (-a - 1))) / 12.0)
+    return s
+
 
 def hot_set_size(n: int, alpha: float, delta: float = 0.1) -> int:
     """M(δ): minimum keys covering (1-δ) of accesses."""
@@ -144,53 +161,42 @@ def recommend(alpha: float, write_ratio: float = 0.0,
 # ─── Zipf α estimation (MLE) ──────────────────────────────────────
 
 def estimate_alpha(counts: list[int]) -> float:
-    """MLE for Zipf α from a list of per-key access counts.
+    """MLE for the Zipf α of `counts` (one entry per key, any order).
 
-    Uses Newton-Raphson to solve the score equation:
+    With ranks r=1..n sorted by descending count and N = Σ c_i, the score
+    equation is
 
-        ζ'(α)/ζ(α)  =  (1/N) Σ c_i log r_i
+        E_α[log r] = (1/N) Σ c_i log r_i,      E_α[log r] = Σ k^{-α} log k / ζ_n(α)
 
-    where c_i is count for rank-r_i (sorted descending).
+    E_α[log r] is strictly decreasing in α, so α is found by bisection on
+    [0.05, 20] rather than Newton: the function is monotone, the bracket is
+    finite, and no initial guess can send it off to a wrong root.
+    (The previous version had the sign of the score equation wrong and
+    returned α≈0.11 for a true α=1.3.)
     """
     c = sorted(counts, reverse=True)
     N = sum(c)
     if N == 0:
         return 1.0
-    ranks = list(range(1, len(c) + 1))
-    # mean log rank weighted by count
-    target = sum(ci * math.log(r) for ci, r in zip(c, ranks)) / N
+    n = len(c)
+    target = math.fsum(ci * math.log(r) for ci, r in zip(c, range(1, n + 1))) / N
 
-    def dlog_zeta(a):
-        """-ζ'(a)/ζ(a) for partial zeta up to n."""
-        n = len(c)
-        z = sum(k ** -a for k in range(1, n + 1))
-        dz = sum(k ** -a * math.log(k) for k in range(1, n + 1))
-        return dz / z
+    def mean_log_rank(a: float) -> float:
+        w = [k ** -a for k in range(1, n + 1)]
+        z = math.fsum(w)
+        d = math.fsum(wi * math.log(k) for wi, k in zip(w, range(1, n + 1)))
+        return d / z
 
-    # Newton-Raphson
-    a = 1.5
-    for _ in range(50):
-        f = dlog_zeta(a) - target  # we want ζ'(α)/ζ(α) = target? no...
-        # Actually: E[log r] = Σ p_k log k = (1/ζ_n(α)) Σ k^{-α} log k
-        # This is -ζ'_n(α)/ζ_n(α)
-        # Target from data = (1/N) Σ c_i log r_i
-        # So we solve: -ζ'_n(α)/ζ_n(α) = target
-        # f = target + ζ'_n(α)/ζ_n(α)
-        z = sum(k ** -a for k in range(1, len(c) + 1))
-        dz = sum(k ** -a * math.log(k) for k in range(1, len(c) + 1))
-        # d2z for Newton
-        d2z = sum(k ** -a * (math.log(k) ** 2) for k in range(1, len(c) + 1))
-        f_val = target + dz / z  # we want this = 0
-        df_val = (d2z * z - dz * dz) / (z * z)
-        if abs(f_val) < 1e-12:
+    lo, hi = 0.05, 20.0
+    for _ in range(80):
+        mid = 0.5 * (lo + hi)
+        if mean_log_rank(mid) > target:
+            lo = mid          # too little skew: raise α
+        else:
+            hi = mid
+        if hi - lo < 1e-9:
             break
-        if abs(df_val) < 1e-15:
-            break
-        a_new = a - f_val / df_val
-        if a_new <= 0.1 or a_new > 20:
-            break
-        a = a_new
-    return a
+    return 0.5 * (lo + hi)
 
 
 def estimate_alpha_from_log(lines: list[str]) -> float:

@@ -6,3 +6,19 @@ build/
 .venv/
 venv/
 .DS_Store
+# LaTeX build products: the .tex is the source, the .pdf is the artefact.
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.spl
+paper/*.synctex.gz
+paper/*.bbl
+paper/*.blg
+paper/*.toc
+
+# Generated figures (swpl plot writes these into the cwd)
+swpl_phase_diagram.png
+swpl_hot_set.png
+swpl_crossover.png
+
+.pytest_cache/
