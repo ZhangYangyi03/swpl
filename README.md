@@ -111,6 +111,25 @@ If you use SWPL in your research, cite as:
 
 ---
 
+## Tests and status
+
+    python -m pytest -q      # 13 tests, standard library + pytest only
+
+CI runs those on Ubuntu and Windows for Python 3.11 and 3.13, plus a CLI
+smoke test. The analysis path (`import swpl`, `recommend`, `estimate_alpha`,
+the tries) needs no third-party package at all; matplotlib is only pulled in
+by `swpl plot` and is an optional extra (`pip install swpl[plot]`).
+
+Two numerical bugs were fixed in 0.1.1 and are now pinned by tests:
+
+    zeta_partial   the n>1e4 branch computed ζ(α) minus a tail, which is not
+                   ζ_n(α) — 81% low at α=1.01, exactly the region the law is
+                   about. Now a direct sum plus an Euler–Maclaurin tail:
+                   exact for n≤1e6, ~1e-8 relative at n=1e7.
+    estimate_alpha the score equation had the wrong sign and returned
+                   α≈0.11 for a true α=1.3. Now bisection on the monotone
+                   E_α[log r]; recovers 1.30±0.02 from synthetic data.
+
 ## Repository structure
 
 ```
